@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include "convertRoman2Int.h"
 
 typedef struct roman_number
 {
