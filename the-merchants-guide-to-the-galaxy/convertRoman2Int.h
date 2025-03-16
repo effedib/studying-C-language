@@ -1,1 +1,0 @@
-int convertRoman2Int(char *roman);

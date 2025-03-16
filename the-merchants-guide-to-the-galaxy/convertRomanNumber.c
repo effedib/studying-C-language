@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include "convertRoman2Int.h"
+#include "convertRomanNumber.h"
 
 typedef struct roman_number
 {
@@ -65,7 +65,7 @@ int parseRomanStr(char *roman, int len)
     }
 }
 
-int convertRoman2Int(char *roman)
+int convertRomanNumber(char *roman)
 {
     int len = strlen(roman);
     if (len <= 0)

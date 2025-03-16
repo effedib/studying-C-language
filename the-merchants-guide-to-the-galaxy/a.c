@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "convertRoman2Int.h"
+#include "convertRomanNumber.h"
 
 typedef struct item
 {
@@ -20,12 +20,12 @@ item *create_item(char *inputStr, int count)
     return i;
 }
 
-void release(item *i)
+void releaseItem(item *i)
 {
     if (i)
     {
         if (i->next)
-            release(i->next);
+            releaseItem(i->next);
         // if (i->item)
         //     free(i->item);
         free(i);
@@ -34,16 +34,29 @@ void release(item *i)
 
 int main()
 {
-    char *g = "glob";
-    char *i = "V";
-    int num1 = convertRoman2Int(i);
-    item *glob = create_item(g, num1);
-    printf("%s is %i\n", glob->item, glob->unit);
+    char str[80];
+    puts("Enter the input (BLANK to quit):");
+    fgets(str, sizeof(str), stdin);
+    str[strcspn(str, "\n")] = '\0';
 
-    char *p = "prok";
-    int num2 = 2;
-    glob->next = create_item(p, num2);
-    printf("%s is %i\n", glob->next->item, glob->next->unit);
+    char *delimiters = " is ";
+    char *token;
+    char *prefix = NULL;
+    char *suffix = NULL;
 
-    release(glob);
+    token = strstr(str, delimiters);
+    if (token != NULL)
+    {
+        *token = '\0';
+        prefix = str;
+        printf("prefix: %s\n", prefix);
+
+        suffix = token + strlen(delimiters);
+        printf("sufffix: %s\n", suffix);
+
+        int num1 = convertRomanNumber(suffix);
+        item *glob = create_item(prefix, num1);
+        printf("%s is %i\n", glob->item, glob->unit);
+        releaseItem(glob);
+    }
 }
