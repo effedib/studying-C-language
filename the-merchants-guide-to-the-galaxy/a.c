@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <regex.h>
 #include "convertRomanNumber.h"
 
 typedef struct quantity
 {
     char *quantity;
-    int unit;
+    char *romanUnit;
     struct quantity *next;
 } quantity;
 
@@ -23,21 +24,40 @@ typedef struct token
     struct token *next;
 } token;
 
+typedef struct splitted
+{
+    char *prefix;
+    char *suffix;
+} splitted;
+
 void printQuantityList(quantity *q);
 void printMetalList(metal *m);
 void printTokenList(token *t);
 
-quantity *addQuantity(quantity **head, char *inputStr, int count)
+quantity *createQuantity(quantity **head, char *inputStr, char *inputUnit)
 {
     quantity *i = malloc(sizeof(quantity));
     i->quantity = strdup(inputStr);
-    i->unit = count;
+    i->romanUnit = strdup(inputUnit);
     i->next = *head;
     *head = i;
 
-    printf("%s = %i\n", i->quantity, i->unit);
-
     return i;
+}
+
+quantity *addQuantity(quantity **head, char *inputStr, char *inputUnit)
+{
+    quantity *tmp = *head;
+    while (tmp != NULL)
+    {
+        if (strcmp(tmp->quantity, inputStr) == 0)
+        {
+            tmp->romanUnit = strdup(inputUnit);
+            return tmp;
+        }
+        tmp = tmp->next;
+    }
+    return createQuantity(head, inputStr, inputUnit);
 }
 
 void releaseQuantity(quantity *q)
@@ -48,22 +68,53 @@ void releaseQuantity(quantity *q)
             releaseQuantity(q->next);
         if (q->quantity)
             free(q->quantity);
+        if (q->romanUnit)
+            free(q->romanUnit);
         free(q);
     }
 }
 
-int findQuantity(quantity *q, char *inputQuantity)
+int sumQuantity(quantity *q, token *t)
 {
-    if (q)
+    int length = 0;
+    token *ttemp = t;
+    quantity *qtemp = q;
+    while (ttemp != NULL)
     {
-        if (strcmp(q->quantity, inputQuantity) == 0)
-            return q->unit;
-        return findQuantity(q->next, inputQuantity);
+        length++;
+        ttemp = ttemp->next;
     }
-    return 0;
+
+    char *finalString = (char *)malloc((length + 1) * sizeof(char));
+    if (finalString == NULL)
+    {
+        printf("Errore di allocazione della memoria\n");
+        exit(1);
+    }
+
+    finalString[length--] = '\0';
+    ttemp = t;
+    while (ttemp != NULL)
+    {
+        while (qtemp != NULL)
+        {
+            if (strcmp(ttemp->token, qtemp->quantity) == 0)
+            {
+                finalString[length--] = *qtemp->romanUnit;
+                break;
+            }
+            else
+                qtemp = qtemp->next;
+        }
+        qtemp = q;
+        ttemp = ttemp->next;
+    }
+    int num = convertRomanNumber(finalString);
+    free(finalString);
+    return num;
 }
 
-metal *addMetal(metal **head, char *stringMetal, float cost)
+metal *createMetal(metal **head, char *stringMetal, float cost)
 {
     metal *m = malloc(sizeof(metal));
     m->metal = strdup(stringMetal);
@@ -72,6 +123,21 @@ metal *addMetal(metal **head, char *stringMetal, float cost)
     *head = m;
 
     return m;
+}
+
+metal *addMetal(metal **head, char *stringMetal, float cost)
+{
+    metal *tmp = *head;
+    while (tmp != NULL)
+    {
+        if (strcmp(tmp->metal, stringMetal) == 0)
+        {
+            tmp->cost = cost;
+            return tmp;
+        }
+        tmp = tmp->next;
+    }
+    return createMetal(head, stringMetal, cost);
 }
 
 void releaseMetal(metal *m)
@@ -95,24 +161,26 @@ token *createToken(char *t)
     return newToken;
 }
 
-token *tokenizer(char *string)
+void tokenizer(token **thead, char *string)
 {
     char *tok, *copy;
     const char delimiters[] = " .,;:!-";
-    token *thead = NULL;
 
     copy = strdup(string);
     tok = strtok(copy, delimiters);
     while (tok != NULL)
     {
         token *newToken = createToken(tok);
-        newToken->next = thead;
-        thead = newToken;
+        if (thead == NULL)
+            *thead = newToken;
+        else
+        {
+            newToken->next = *thead;
+            *thead = newToken;
+        }
         tok = strtok(NULL, delimiters);
     }
-
     free(copy);
-    return thead;
 }
 
 void releaseTokens(token *t)
@@ -127,14 +195,13 @@ void releaseTokens(token *t)
     }
 }
 
-int checkMetal(token *t, metal *m, quantity *q)
+int checkMetal(token *t, metal **m, quantity *q)
 {
-    token *tmp;
+    token *tmp = t->next;
     char *startptr, *endptr, *metalString;
     float totalCost, cost;
     int units = 0;
 
-    tmp = t->next;
     startptr = tmp->token;
     totalCost = strtof(startptr, &endptr);
     if (endptr == startptr || *endptr != '\0')
@@ -146,22 +213,46 @@ int checkMetal(token *t, metal *m, quantity *q)
     tmp = tmp->next;
     metalString = tmp->token;
     tmp = tmp->next;
-    while (tmp != NULL)
-    {
-        units += findQuantity(q, tmp->token);
-        tmp = tmp->next;
-    }
+    units = sumQuantity(q, tmp);
     if (units <= 0)
     {
         printf("No units found\n");
         return -1;
     }
     cost = totalCost / units;
-    addMetal(&m, metalString, cost);
-    printMetalList(m);
+    addMetal(m, metalString, cost);
+    printMetalList(*m);
 
     return 0;
 }
+
+/* void matchPattern(const char *string, const char *pattern) {
+    regex_t regex;
+    int reti;
+
+    // Compilare il pattern
+    reti = regcomp(&regex, pattern, REG_EXTENDED);
+    if (reti) {
+        fprintf(stderr, "Could not compile regex\n");
+        exit(1);
+    }
+
+    // Eseguire la ricerca del pattern
+    reti = regexec(&regex, string, 0, NULL, 0);
+    if (!reti) {
+        printf("Pattern found: %s\n", pattern);
+    } else if (reti == REG_NOMATCH) {
+        printf("Pattern not found: %s\n", pattern);
+    } else {
+        char msgbuf[100];
+        regerror(reti, &regex, msgbuf, sizeof(msgbuf));
+        fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+        exit(1);
+    }
+
+    // Liberare la memoria allocata per il pattern
+    regfree(&regex);
+} */
 
 int main()
 {
@@ -169,26 +260,27 @@ int main()
     quantity *qhead = NULL;
     metal *mhead = NULL;
     token *t = NULL;
-    int q = 0;
+    int q = 0, tokenListSize = 0;
 
-    puts("Enter the input (BLANK to quit):");
     while (1)
     {
+        puts("Enter the input (BLANK to quit):");
         fgets(str, sizeof(str), stdin);
         str[strcspn(str, "\n")] = '\0';
-        t = tokenizer(str);
+        tokenizer(&t, str);
         if (t == NULL)
             break;
         char *s = t->token;
         q = convertRomanNumber(s);
         if (q > 0)
-            addQuantity(&qhead, t->next->next->token, q);
+            addQuantity(&qhead, t->next->next->token, s);
         else if (strcmp(s, "credits") == 0)
-            checkMetal(t, mhead, qhead);
+            checkMetal(t, &mhead, qhead);
         else
             printf("I don't know\n");
 
         releaseTokens(t);
+        t = NULL;
     }
 
     if (qhead != NULL)
@@ -205,7 +297,7 @@ void printQuantityList(quantity *q)
     {
         if (q->next)
             printQuantityList(q->next);
-        printf("%s\t=>\tQuantity: %d\n", q->quantity, q->unit);
+        printf("%s\t=>\tQuantity: %d\n", q->quantity, convertRomanNumber(q->romanUnit));
     }
 }
 
