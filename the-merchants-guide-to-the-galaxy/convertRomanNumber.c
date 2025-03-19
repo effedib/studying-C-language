@@ -58,6 +58,8 @@ int parseRomanStr(char *roman, int len)
     {
         int currentRomanInt = roman2int(roman[0]);
         int nextRomanInt = roman2int(roman[1]);
+        if (currentRomanInt == 0 || nextRomanInt == 0)
+            return 0;
         if (nextRomanInt > currentRomanInt)
             return (nextRomanInt - currentRomanInt) + parseRomanStr(roman + 2, len - 2);
 
