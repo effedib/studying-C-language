@@ -165,13 +165,8 @@ void tokenizer(token **thead, char *string)
     while (tok != NULL)
     {
         token *newToken = createToken(tok);
-        if (thead == NULL)
-            *thead = newToken;
-        else
-        {
-            newToken->next = *thead;
-            *thead = newToken;
-        }
+        newToken->next = *thead;
+        *thead = newToken;
         tok = strtok(NULL, delimiters);
     }
     free(copy);
@@ -191,10 +186,13 @@ void releaseTokens(token *t)
 
 int findSplitter(token **thead, char *delimiter, int before)
 {
+    if (strcmp(delimiter, "") == 0)
+        return -1;
+
     token *t = *thead;
-    while (t != NULL && strcmp(t->next->token, "is") != 0)
+    while (t != NULL && strcmp(t->next->token, delimiter) != 0)
         t = t->next;
-    if (t == NULL)
+    if (t == NULL || strcmp(t->next->token, delimiter) != 0)
         return -1;
     if (!before)
     {
@@ -235,6 +233,29 @@ int checkMetal(token *t, metal **m, quantity *q)
     return 0;
 }
 
+float countMetal(token *t, metal *mhead, metal **m, quantity *qhead)
+{
+    float credits = 0.0;
+    int units = 0;
+    char *metalstring;
+    token *ttemp = t;
+    metal *mtemp = mhead;
+
+    if (ttemp == NULL || ttemp->next == NULL || mtemp == NULL)
+        return credits;
+    metalstring = ttemp->token;
+    ttemp = ttemp->next;
+    while ((strcmp(mtemp->metal, metalstring) != 0) && (mtemp->next != NULL))
+        mtemp = mtemp->next;
+
+    *m = mtemp;
+    credits = mtemp->cost;
+    units = sumQuantity(qhead, ttemp);
+    credits *= units;
+
+    return credits;
+}
+
 int matchPattern(const char *string, const char *pattern)
 {
     regex_t regex;
@@ -261,10 +282,11 @@ int main()
 {
     char str[80];
     quantity *qhead = NULL;
-    metal *mhead = NULL;
+    metal *mhead = NULL, *m = NULL;
     token *t = NULL;
-    char *input, *unit;
+    char *input, *unit, *delimiter;
     int units = 0;
+    float credits = 0.0;
 
     while (1)
     {
@@ -278,7 +300,14 @@ int main()
             checkMetal(t->next, &mhead, qhead);
         else if (matchPattern(str, "^how much") == 0)
         {
-            if (findSplitter(&t, "is", 1) == 0)
+            if (matchPattern(str, " is ") == 0)
+                delimiter = "is";
+            else if (matchPattern(str, " are ") == 0)
+                delimiter = "are";
+            else
+                delimiter = "";
+
+            if (findSplitter(&t, delimiter, 1) == 0)
             {
                 units = sumQuantity(qhead, t);
                 printf("Result: %i\n", units);
@@ -287,7 +316,22 @@ int main()
                 printf("Wrong input, use 'is' to ask how much is some quantity...\n");
         }
         else if (matchPattern(str, "^how many credits") == 0)
-            printf("Pattern how many\n");
+        {
+            if (matchPattern(str, " is ") == 0)
+                delimiter = "is";
+            else if (matchPattern(str, " are ") == 0)
+                delimiter = "are";
+            else
+                delimiter = "";
+
+            if (findSplitter(&t, delimiter, 1) == 0)
+            {
+                credits = countMetal(t, mhead, &m, qhead);
+                printf("Metal: %s => %.2f Credits\n", m->metal, credits);
+            }
+            else
+                printf("Wrong input\n");
+        }
         else if (convertRomanNumber(t->token) > 0)
         {
             input = t->next->next->token;
@@ -300,7 +344,6 @@ int main()
         releaseTokens(t);
         t = NULL;
     }
-
     if (qhead != NULL)
         releaseQuantity(qhead);
     if (mhead != NULL)
