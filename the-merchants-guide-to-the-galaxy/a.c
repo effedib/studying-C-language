@@ -24,12 +24,6 @@ typedef struct token
     struct token *next;
 } token;
 
-typedef struct splitted
-{
-    char *prefix;
-    char *suffix;
-} splitted;
-
 void printQuantityList(quantity *q);
 void printMetalList(metal *m);
 void printTokenList(token *t);
@@ -195,64 +189,73 @@ void releaseTokens(token *t)
     }
 }
 
+int findSplitter(token **thead, char *delimiter, int before)
+{
+    token *t = *thead;
+    while (t != NULL && strcmp(t->next->token, "is") != 0)
+        t = t->next;
+    if (t == NULL)
+        return -1;
+    if (!before)
+    {
+        t = t->next->next;
+        *thead = t;
+    }
+    else
+    {
+        releaseTokens(t->next);
+        t->next = NULL;
+    }
+    return 0;
+}
+
 int checkMetal(token *t, metal **m, quantity *q)
 {
-    token *tmp = t->next;
-    char *startptr, *endptr, *metalString;
+    token *ttemp = t;
+    char *endptr;
     float totalCost, cost;
     int units = 0;
 
-    startptr = tmp->token;
-    totalCost = strtof(startptr, &endptr);
-    if (endptr == startptr || *endptr != '\0')
+    totalCost = strtof(ttemp->token, &endptr);
+
+    if (endptr == ttemp->token || *endptr != '\0')
         return -1;
-    while (tmp != NULL && strcmp(tmp->token, "is") != 0)
-        tmp = tmp->next;
-    if (tmp == NULL || tmp->next == NULL)
+    if (findSplitter(&ttemp, "is", 0) != 0)
         return -1;
-    tmp = tmp->next;
-    metalString = tmp->token;
-    tmp = tmp->next;
-    units = sumQuantity(q, tmp);
+
+    units = sumQuantity(q, ttemp->next);
     if (units <= 0)
     {
-        printf("No units found\n");
+        printf("Some quantity is not recognized\n");
         return -1;
     }
     cost = totalCost / units;
-    addMetal(m, metalString, cost);
-    printMetalList(*m);
+    addMetal(m, ttemp->token, cost);
 
     return 0;
 }
 
-/* void matchPattern(const char *string, const char *pattern) {
+int matchPattern(const char *string, const char *pattern)
+{
     regex_t regex;
     int reti;
 
-    // Compilare il pattern
     reti = regcomp(&regex, pattern, REG_EXTENDED);
-    if (reti) {
+    if (reti)
         fprintf(stderr, "Could not compile regex\n");
-        exit(1);
-    }
 
-    // Eseguire la ricerca del pattern
     reti = regexec(&regex, string, 0, NULL, 0);
-    if (!reti) {
-        printf("Pattern found: %s\n", pattern);
-    } else if (reti == REG_NOMATCH) {
-        printf("Pattern not found: %s\n", pattern);
-    } else {
-        char msgbuf[100];
+    /* error handling
+    {
+        char msgbuf[512];
         regerror(reti, &regex, msgbuf, sizeof(msgbuf));
         fprintf(stderr, "Regex match failed: %s\n", msgbuf);
-        exit(1);
-    }
+    } */
 
-    // Liberare la memoria allocata per il pattern
     regfree(&regex);
-} */
+
+    return reti;
+}
 
 int main()
 {
@@ -260,22 +263,37 @@ int main()
     quantity *qhead = NULL;
     metal *mhead = NULL;
     token *t = NULL;
-    int q = 0, tokenListSize = 0;
+    char *input, *unit;
+    int units = 0;
 
     while (1)
     {
-        puts("Enter the input (BLANK to quit):");
+        puts("\nEnter the input (BLANK to quit):");
         fgets(str, sizeof(str), stdin);
         str[strcspn(str, "\n")] = '\0';
         tokenizer(&t, str);
         if (t == NULL)
             break;
-        char *s = t->token;
-        q = convertRomanNumber(s);
-        if (q > 0)
-            addQuantity(&qhead, t->next->next->token, s);
-        else if (strcmp(s, "credits") == 0)
-            checkMetal(t, &mhead, qhead);
+        if (matchPattern(str, "credits$") == 0)
+            checkMetal(t->next, &mhead, qhead);
+        else if (matchPattern(str, "^how much") == 0)
+        {
+            if (findSplitter(&t, "is", 1) == 0)
+            {
+                units = sumQuantity(qhead, t);
+                printf("Result: %i\n", units);
+            }
+            else
+                printf("Wrong input, use 'is' to ask how much is some quantity...\n");
+        }
+        else if (matchPattern(str, "^how many credits") == 0)
+            printf("Pattern how many\n");
+        else if (convertRomanNumber(t->token) > 0)
+        {
+            input = t->next->next->token;
+            unit = t->token;
+            addQuantity(&qhead, input, unit);
+        }
         else
             printf("I don't know\n");
 
