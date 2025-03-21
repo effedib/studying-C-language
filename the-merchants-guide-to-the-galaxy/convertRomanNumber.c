@@ -34,6 +34,8 @@ int convertRomanNumber(char *roman)
     for (int i = len; i >= 0; i--)
     {
         int currentValue = romanValue(toupper(roman[i]));
+        if (currentValue == 0)
+            return 0;
         if (currentValue >= prevValue)
             result += currentValue;
         else
