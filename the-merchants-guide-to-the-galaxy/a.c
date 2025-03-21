@@ -24,10 +24,6 @@ typedef struct token
     struct token *next;
 } token;
 
-void printQuantityList(quantity *q);
-void printMetalList(metal *m);
-void printTokenList(token *t);
-
 quantity *createQuantity(quantity **head, char *inputStr, char *inputUnit)
 {
     quantity *i = malloc(sizeof(quantity));
@@ -46,6 +42,7 @@ quantity *addQuantity(quantity **head, char *inputStr, char *inputUnit)
     {
         if (strcmp(tmp->quantity, inputStr) == 0)
         {
+            free(tmp->romanUnit);
             tmp->romanUnit = strdup(inputUnit);
             return tmp;
         }
@@ -248,6 +245,9 @@ float countMetal(token *t, metal *mhead, metal **m, quantity *qhead)
     while ((strcmp(mtemp->metal, metalstring) != 0) && (mtemp->next != NULL))
         mtemp = mtemp->next;
 
+    if ((strcmp(mtemp->metal, metalstring) != 0))
+        return credits;
+
     *m = mtemp;
     credits = mtemp->cost;
     units = sumQuantity(qhead, ttemp);
@@ -327,7 +327,10 @@ int main()
             if (findSplitter(&t, delimiter, 1) == 0)
             {
                 credits = countMetal(t, mhead, &m, qhead);
-                printf("Metal: %s => %.2f Credits\n", m->metal, credits);
+                if (credits > 0)
+                    printf("Metal: %s => %.2f Credits\n", m->metal, credits);
+                else
+                    printf("Metal not found!!!\n");
             }
             else
                 printf("Wrong input\n");
@@ -350,34 +353,4 @@ int main()
         releaseMetal(mhead);
 
     return 0;
-}
-
-void printQuantityList(quantity *q)
-{
-    if (q)
-    {
-        if (q->next)
-            printQuantityList(q->next);
-        printf("%s\t=>\tQuantity: %d\n", q->quantity, convertRomanNumber(q->romanUnit));
-    }
-}
-
-void printMetalList(metal *m)
-{
-    if (m)
-    {
-        if (m->next)
-            printMetalList(m->next);
-        printf("Metal %s, Cost: %.2f\n", m->metal, m->cost);
-    }
-}
-
-void printTokenList(token *t)
-{
-    if (t)
-    {
-        if (t->next)
-            printTokenList(t->next);
-        printf("[ %s ]\n", t->token);
-    }
 }
