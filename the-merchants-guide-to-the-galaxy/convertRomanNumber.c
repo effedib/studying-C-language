@@ -3,78 +3,43 @@
 #include <ctype.h>
 #include "convertRomanNumber.h"
 
-typedef struct roman_number
+int romanValue(char roman)
 {
-    char roman_letter;
-    int equivalent_number;
-} roman_number;
-
-roman_number romans_table[] =
-    {{'M', 1000},
-     {'D', 500},
-     {'C', 100},
-     {'L', 50},
-     {'X', 10},
-     {'V', 5},
-     {'I', 1}};
-
-int upper_string(char *source, char *dest, int len1)
-{
-    for (int i = 0; i < len1; i++)
-        dest[i] = toupper((unsigned char)source[i]);
-
-    dest[len1] = '\0';
-
-    int len2 = strlen(dest);
-
-    if (len1 != len2)
+    switch (roman)
     {
-        puts("String error!");
-        return -1;
-    }
-
-    return 0;
-}
-
-int roman2int(char roman)
-{
-    int roman_table_size = sizeof(romans_table) / sizeof(romans_table[0]);
-    for (int i = 0; i < roman_table_size; i++)
-    {
-        if (romans_table[i].roman_letter == roman)
-            return romans_table[i].equivalent_number;
-    }
-
-    return 0;
-}
-
-int parseRomanStr(char *roman, int len)
-{
-    if (len <= 0)
+    case 'I':
+        return 1;
+    case 'V':
+        return 5;
+    case 'X':
+        return 10;
+    case 'L':
+        return 50;
+    case 'C':
+        return 100;
+    case 'D':
+        return 500;
+    case 'M':
+        return 1000;
+    default:
         return 0;
-    if (len == 1)
-        return roman2int(*roman);
-    else
-    {
-        int currentRomanInt = roman2int(roman[0]);
-        int nextRomanInt = roman2int(roman[1]);
-        if (currentRomanInt == 0 || nextRomanInt == 0)
-            return 0;
-        if (nextRomanInt > currentRomanInt)
-            return (nextRomanInt - currentRomanInt) + parseRomanStr(roman + 2, len - 2);
-
-        return currentRomanInt + parseRomanStr(roman + 1, len - 1);
     }
 }
 
 int convertRomanNumber(char *roman)
 {
-    int len = strlen(roman);
-    if (len <= 0)
-        return 0;
+    int len = strlen(roman) - 1;
+    int result = 0, prevValue = 0;
 
-    char roman_copy[len + 1];
-    upper_string(roman, roman_copy, len);
+    for (int i = len; i >= 0; i--)
+    {
+        int currentValue = romanValue(toupper(roman[i]));
+        if (currentValue >= prevValue)
+            result += currentValue;
+        else
+            result -= currentValue;
+        prevValue = currentValue;
+    }
 
-    return parseRomanStr(roman_copy, len);
+    return result;
 }
