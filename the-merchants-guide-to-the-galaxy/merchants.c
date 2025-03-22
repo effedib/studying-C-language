@@ -252,31 +252,25 @@ metal *checkMetal(tokenArray *prefix, tokenArray *suffix, metal **m, quantity *q
     return newMetal;
 }
 
-/* float countMetal(token *t, metal *mhead, metal **m, quantity *qhead)
+float countMetal(tokenArray *t, metal *mhead, quantity *qhead)
 {
     float credits = 0.0;
     int units = 0;
-    char *metalstring;
-    token *ttemp = t;
+    char *metalstring = t->tokens[t->count - 1];
     metal *mtemp = mhead;
 
-    if (ttemp == NULL || ttemp->next == NULL || mtemp == NULL)
-        return credits;
-    metalstring = ttemp->token;
-    ttemp = ttemp->next;
     while ((strcmp(mtemp->metal, metalstring) != 0) && (mtemp->next != NULL))
         mtemp = mtemp->next;
 
     if ((strcmp(mtemp->metal, metalstring) != 0))
         return credits;
 
-    *m = mtemp;
     credits = mtemp->cost;
-    units = sumQuantity(qhead, ttemp);
+    units = sumQuantity(qhead, t);
     credits *= units;
 
     return credits;
-} */
+}
 
 int matchPattern(const char *string, const char *pattern)
 {
@@ -333,6 +327,8 @@ int main()
         }
         else if (matchPattern(str, "^how many credits") == 0)
         {
+            credits = countMetal(suffix, mhead, qhead);
+            printf("%.2f credits => metal: %s\n", credits, suffix->tokens[suffix->count - 1]);
         }
         else
             puts("Wrong input!");
