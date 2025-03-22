@@ -10,15 +10,14 @@ You can sum the units of measure previously defined, the following is legal: how
 
 You can ask how many credits like this: how many Credits is glob prok Silver ? .
 
-## Installation
-
-tbd
-
-
 ## How to run
 
 ```bash
-tbd
+make
+```
+
+```bash
+./merchants.out
 ```
 
 ```bash
