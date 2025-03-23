@@ -19,5 +19,6 @@ merchants: merchants.c
 	gcc -g merchants.c -I./includes -fPIC -L./mylib -limports -o merchants.out
 
 clean:
-	rm *.out
-	rm *.o
+	rm -f *.out
+	rm -f ./objects/*.o
+	rm -f ./mylib/*.a
