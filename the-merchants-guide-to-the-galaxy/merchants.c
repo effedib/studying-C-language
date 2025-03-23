@@ -9,6 +9,14 @@
 
 int sumQuantity(quantity *q, tokenArray *t)
 {
+    /**
+     * Sums the quantities represented by Roman numerals in the token array.
+     *
+     * @param q Pointer to the head of the quantity linked list.
+     * @param t Pointer to the token array containing the quantities.
+     * @return The sum of the quantities as an integer.
+     */
+
     quantity *qtemp = q;
     int length = t->count;
     int counter = 0;
@@ -44,6 +52,16 @@ int sumQuantity(quantity *q, tokenArray *t)
 
 metal *checkMetal(tokenArray *prefix, tokenArray *suffix, metal **m, quantity *q)
 {
+    /**
+     * Checks the metal and calculates its cost per unit.
+     *
+     * @param prefix Pointer to the token array containing the prefix.
+     * @param suffix Pointer to the token array containing the suffix.
+     * @param m Pointer to the head of the metal linked list.
+     * @param q Pointer to the head of the quantity linked list.
+     * @return Pointer to the new metal structure with updated cost per unit.
+     */
+
     float totalCost, costPerMetal;
     int units = 0;
     char *endptr;
@@ -68,6 +86,15 @@ metal *checkMetal(tokenArray *prefix, tokenArray *suffix, metal **m, quantity *q
 
 float countMetal(tokenArray *t, metal *mhead, quantity *qhead)
 {
+    /**
+     * Calculates the total credits for a given metal based on its quantity.
+     *
+     * @param t Pointer to the token array containing the metal and quantity.
+     * @param mhead Pointer to the head of the metal linked list.
+     * @param qhead Pointer to the head of the quantity linked list.
+     * @return The total credits as a float.
+     */
+
     float credits = 0.0;
     int units = 0;
     char *metalstring = t->tokens[t->count - 1];
@@ -88,6 +115,14 @@ float countMetal(tokenArray *t, metal *mhead, quantity *qhead)
 
 int matchPattern(const char *string, const char *pattern)
 {
+    /**
+     * Matches a string against a given regular expression pattern.
+     *
+     * @param string The string to be matched.
+     * @param pattern The regular expression pattern.
+     * @return 0 if the pattern matches, otherwise a non-zero value.
+     */
+
     regex_t regex;
     int reti;
 
