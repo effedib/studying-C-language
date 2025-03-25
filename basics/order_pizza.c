@@ -2,6 +2,10 @@
 #include <unistd.h>
 #include <getopt.h>
 
+/*  < to redirect STDIN
+ *  > to redirect STDOUT
+ * 2> to redirect STDERR */
+
 int main(int argc, char *argv[])
 {
     char *delivery = "";
