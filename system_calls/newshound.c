@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <string.h>
 
 /* execl() = list of args.
  * execle() = list of args + environment.
