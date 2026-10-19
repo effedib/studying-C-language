@@ -1,0 +1,8 @@
+la funzione principale sarà:
+int trovaLettureFuoriIntervallo(const struct Serie *sensori, int n, int min, int max);
+che userà un loop per cercare tra tutti i sensori quello con la serie fuori intervallo più lunga e sceglierà quello col codice minore a parità di lunghezza oppure -1 se non ne dovesse trovare nessuno.
+A sua volta la funzione chiamerà:
+int contaLettureFuoriIntervallo(const struct Serie *sensore, int min, int max);
+l'unico scopo di questa funzione sarà di restituire il numero massimo di letture fuori intervallo consecutive seguendo le precondizioni e restituirne il numero massimo. Restituirà 0 in caso di nessuna lettura trovata.
+La funzione principale userà questi risultati prendendo il risultato maggiore.
+Un approccio bottom-up sarebbe di scrivere inizialmente la funzione contaLettureFuoriIntervallo che agisce come lettura di un singolo sensore, poi scrivere trovaLettureFuoriIntervallo che lavora sull'array e trovare il sensore giusto usando contaLettureFuoriIntervallo ad ogni sensore presente nell'array
