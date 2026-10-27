@@ -1,22 +1,29 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+int leggiEAvanza(int **cursore, int *fine, int *letto) {
+  if (*cursore==fine) {
+    return 0;
+  }
+
+  *letto=*(*cursore++);
+  return 1;
+}
 
 int main(void)
 {
-  int v[] = {4, 8, 12};
-  int *p = v;
+    int v[] = {6, 12, 18, 24};
+    int *p = v;
 
-  int a = *p++;
-  int b = ++*p;
-  int c = (*p)++;
+    int a = (*p)++;
+    int b = *++p;
+    int c = *p++;
 
-  printf("a: %d\n", a);
-  printf("b: %d\n", b);
-  printf("c: %d\n", c);
+    ++*p;
 
-  for (int i=0; i<3; i++) {
-    printf("%d ", v[i]);
-  }
-  printf("\n");
+    printf("%d %d %d\n", a, b, c);
+    printf("%d %d %d %d\n", v[0], v[1], v[2], v[3]);
+    printf("%d\n", *p);
 
-  return 0;
+    return 0;
 }
