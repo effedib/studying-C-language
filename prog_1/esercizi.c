@@ -1,29 +1,73 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int leggiEAvanza(int **cursore, int *fine, int *letto) {
-  if (*cursore==fine) {
+struct Serie {
+  int codice;
+  int *letture;
+  int n;
+};
+
+int duplicaSerie(const struct Serie *origine, struct Serie *uscita) {
+  if (
+    origine==NULL
+    || uscita==NULL
+    || origine==uscita
+    || origine->n<0
+    || (origine->n==0 && origine->letture!=NULL)
+    || (origine->n>0 && origine->letture==NULL)
+  ) {
     return 0;
   }
 
-  *letto=*(*cursore++);
+  if (origine->n==0 || origine->letture==NULL) {
+    uscita->n=origine->n;
+    uscita->codice=origine->codice;
+    uscita->letture=NULL;
+    return 1;
+  }
+
+  int *p = malloc(origine->n * sizeof *p);
+  if (p==NULL) {
+    return 0;
+  }
+
+  uscita->n=origine->n;
+  uscita->codice=origine->codice;
+  uscita->letture=p;
+  for (int i=0; i<origine->n; i++) {
+    uscita->letture[i]=origine->letture[i];
+  }
+
   return 1;
 }
 
+void stampaSerie(const struct Serie *serie) {
+  printf("\ncodice: %d\n", serie->codice);
+  printf("dimensione: %d\n", serie->n);
+  for (int i=0; i<serie->n; i++) {
+    printf("lettura %d: %d\n", i, serie->letture[i]);
+  }
+}
+
+
 int main(void)
 {
-    int v[] = {6, 12, 18, 24};
-    int *p = v;
+  int dati[4] = {-5,18,27,60};
 
-    int a = (*p)++;
-    int b = *++p;
-    int c = *p++;
+  struct Serie originale = {42,dati,4};
+  struct Serie duplicata = {0,NULL,0};
 
-    ++*p;
+  int ris = duplicaSerie(&originale, &duplicata);
+  if (ris) {
+    duplicata.letture[0] = 99;
+    printf("Originale\n");
+    stampaSerie(&originale);
+    printf("Duplicata\n");
+    stampaSerie(&duplicata);
+  }
 
-    printf("%d %d %d\n", a, b, c);
-    printf("%d %d %d %d\n", v[0], v[1], v[2], v[3]);
-    printf("%d\n", *p);
+  free(duplicata.letture);
+  duplicata.letture=NULL;
 
-    return 0;
+  return 0;
 }
